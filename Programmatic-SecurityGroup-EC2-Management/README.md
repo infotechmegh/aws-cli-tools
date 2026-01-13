@@ -1,5 +1,7 @@
 # Programmatic Security Group / EC2 Management
 
+**Objective**: This utility creates a backup mapping of EC2 instances and their associated security groups before performing network testing or updates. After testing is complete, the same mapping can be used to restore the instances to their original security group configuration, ensuring no unintended changes persist.
+
 Two bash helpers to export current Security Group attachments and reapply them programmatically.
 
 ## Prerequisites
@@ -46,9 +48,13 @@ chmod +x Attach-SecurityGroups-to-EC2-Programmatically.sh
 
 Note: If using environment variables (AWS_ACCESS_KEY_ID, etc.) instead of a profile, the PROFILE argument can be omitted.
 
-Notes:
-- `modify-instance-attribute` replaces the entire set of Security Groups with the list you provide.
-- A log file `SG-Attachment-to-Instances-as-par-Instance-SG-Mapping.log` is generated detailing each attempt.
+## Usage Workflow
+
+1. **Before Network Changes**: Run the extraction script to create a backup of current security group mappings.
+2. **Perform Testing/Updates**: Make your network changes, security group modifications, or other updates.
+3. **Restore Original State**: Use the attachment script with the backup mapping to restore instances to their original security group configuration.
+
+This ensures that any temporary changes made during testing can be cleanly reverted without manual intervention.
 
 ## LocalStack test setup
 Run the scripts against LocalStack to avoid touching real AWS.
