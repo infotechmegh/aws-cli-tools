@@ -9,6 +9,13 @@ INSTANCE_LIST=$1
 PROFILE=$2
 OUTPUT="./SG-details-of-instnaces-from-${INSTANCE_LIST}.log"
 
+# Set profile argument if provided
+if [ -n "$PROFILE" ]; then
+  PROFILE_ARG="--profile $PROFILE"
+else
+  PROFILE_ARG=""
+fi
+
 ## Formatting the log file
 echo "instance-name:Security Groups" >${OUTPUT}
 
@@ -17,10 +24,10 @@ do
   INSTANCE_NAME=`echo $line | awk '{print $1}'`
 
   ##extracting the instance id
-  INSTANCE_ID=`aws ec2 describe-instances --profile ${PROFILE} --region us-east-2 --filters "Name=tag:Name,Values=${INSTANCE_NAME}" --output text --query 'Reservations[*].Instances[*].[InstanceId]'`
+  INSTANCE_ID=`aws ec2 describe-instances $PROFILE_ARG --region us-east-2 --filters "Name=tag:Name,Values=${INSTANCE_NAME}" --output text --query 'Reservations[*].Instances[*].[InstanceId]'`
 
   # Extracting SG of the instance
-  SG_LIST=`aws ec2 describe-instances --profile ${PROFILE} --region us-east-2 --filters "Name=tag:Name,Values=${INSTANCE_NAME}" --output text --query 'Reservations[*].Instances[*].SecurityGroups[*]' | awk 'BEGIN { ORS=" " }; {print $1}'`
+  SG_LIST=`aws ec2 describe-instances $PROFILE_ARG --region us-east-2 --filters "Name=tag:Name,Values=${INSTANCE_NAME}" --output text --query 'Reservations[*].Instances[*].SecurityGroups[*]' | awk 'BEGIN { ORS=" " }; {print $1}'`
 
   ## Generating the output in a format so, that can be used while attaching the SGs once again programmatically
   echo ${INSTANCE_NAME}:${SG_LIST} >>${OUTPUT}
