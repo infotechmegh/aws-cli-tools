@@ -1,62 +1,28 @@
-# AWS EC2 Security Group Tools
+# AWS CLI Tools
 
-Scripts for extracting existing Security Group assignments on EC2 instances and reattaching them programmatically. All scripts live in `Programmatic-SecurityGroup-EC2-Management/`.
+Utilities and scripts to automate common AWS infrastructure tasks. The repo is designed to grow over time with more functionality and room for new ideas.
 
-## Prerequisites
-- bash, AWS CLI v2 installed and on PATH
-- AWS credentials configured (default profile or pass a profile as the second arg)
-- Permissions: `ec2:DescribeInstances` and `ec2:ModifyInstanceAttribute`
-- Default AWS region in the scripts is `us-east-2`; change it in the scripts if you need another region.
+## Purpose
+- Automate day-to-day AWS infra management tasks via CLI-driven scripts.
+- Add new use cases as they emerge (networking, compute, IAM, cost controls, etc.).
+- Experiment and iterate on ideas safely before applying them to real environments.
 
-## Extract current Security Groups
-Script: `Programmatic-SecurityGroup-EC2-Management/Extract-EC2-SecurityGroups-Mapping.sh`
+## Prerequisites (common)
+- bash, AWS CLI v2 on PATH
+- AWS credentials configured (profiles supported)
+- Appropriate permissions per script (e.g., EC2 describe/modify for SG tools)
+- (Optional) LocalStack + `awslocal` for safe local testing before hitting real AWS
 
-Input file (`InstanceList`) format (header line is skipped):
-```
-instance-name
-web-01
-api-02
-```
+## Repo structure
+- `Programmatic-SecurityGroup-EC2-Management/`: scripts to export and reattach EC2 Security Groups (see that folder’s README for usage and LocalStack test flow).
+- More folders will be added as new automation use cases are built.
 
-Command:
-```bash
-cd Programmatic-SecurityGroup-EC2-Management
-chmod +x Extract-EC2-SecurityGroups-Mapping.sh
-./Extract-EC2-SecurityGroups-Mapping.sh InstanceList <PROFILE>
-```
+## Quick start
+- Prereqs: bash, AWS CLI v2, and credentials configured (or LocalStack for local testing).
+- Clone and checkout the branch you need, then follow the README inside each folder.
+- Prefer running against LocalStack first when experimenting.
 
-Output: `SG-details-of-instnaces-from-InstanceList.log` with lines like `instance-name:sg-0123 sg-0456`.
-
-## Attach Security Groups programmatically
-Script: `Programmatic-SecurityGroup-EC2-Management/Attach-SecurityGroups-to-EC2-Programmatically.sh`
-
-Input mapping file (`Instance-SG-Mapping`) format (header line is skipped):
-```
-instance-name:sg-0123 sg-0456
-web-01:sg-0123 sg-0789
-api-02:sg-0456 sg-0abc
-```
-
-Command:
-```bash
-cd Programmatic-SecurityGroup-EC2-Management
-chmod +x Attach-SecurityGroups-to-EC2-Programmatically.sh
-./Attach-SecurityGroups-to-EC2-Programmatically.sh Instance-SG-Mapping <PROFILE>
-```
-
-Notes:
-- `modify-instance-attribute` replaces the entire Security Group set on the instance with the provided list.
-- A log file `SG-Attachment-to-Instances-as-par-Instance-SG-Mapping.log` is produced showing the attempted changes.
-
-## LocalStack test setup
-Use LocalStack to test the scripts without touching real AWS.
-
-- Requirements: Docker (or `pip install localstack`), AWS CLI v2, and optionally `awslocal` (`pip install awscli-local`).
-- Start LocalStack: `docker run --rm -p 4566:4566 -p 4510-4559:4510-4559 localstack/localstack`
-- Create a test profile: `aws configure --profile localstack` (any keys are accepted).
-- Populate sample data (example):  
-  `awslocal ec2 run-instances --image-id ami-12345678 --count 1 --instance-type t3.micro --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=web-01}]'`
-- Point the scripts to LocalStack by exporting the endpoint before running them:  
-  `export AWS_ENDPOINT_URL=http://localhost:4566`  
-  `./Programmatic-SecurityGroup-EC2-Management/Extract-EC2-SecurityGroups-Mapping.sh InstanceList localstack`
-- Keep the region consistent (`us-east-1`/`us-east-2`) between your LocalStack resources and the scripts’ `--region` flag.
+## Contributing / ideas
+- Open an issue or PR with new automation ideas.
+- Keep scripts idempotent and region-aware; prefer parameters or environment variables over hard-coded values.
+- Add a short README to any new folder explaining purpose, inputs, outputs, and safety notes.
